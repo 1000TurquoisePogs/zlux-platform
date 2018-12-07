@@ -113,6 +113,45 @@ declare namespace ZLUX {
     getLocale(): string;
   }
 
+  enum OSType {
+    AIX = 0,
+    Darwin = 1,
+    FreeBSD = 2,
+    Linux = 3,
+    OpenBSD = 4,
+    OS400 = 5,
+    'OS/390' = 6,
+    SunOS = 7,
+    Windows_NT = 8
+  }
+
+  enum OSPlatform {
+    aix = 0, //can be i-series
+    darwin = 1,
+    freebsd = 2,
+    linux = 3,
+    openbsd = 4,
+    os390 = 5,
+    sunos = 6,
+    win32 = 7
+  }
+
+  type ServiceOSInfo = {
+    platform: OSPlatform | undefined,
+    type: OSType | undefined
+  }
+
+  
+  type EnvironmentInfo = {
+    os: OSInfo
+  }
+
+  type OSInfo = {
+    zlux: ServiceOSInfo,
+    osagent: ServiceOSInfo
+  }
+
+
   /**
      An interface which allows an App easy access to URIs specific to its own namespace
      @interface
@@ -675,16 +714,16 @@ declare const require: (identifier: string) => any;
 
 declare var ZoweZLUX: typeof ZoweZLUXResources;
 
-declare class ZoweZLUXResources {
+declare type ZoweZLUXResources = {
   //previously was PluginManager
-  static pluginManager: any;
-  static uriBroker: ZLUX.UriBroker;
-  static dispatcher: ZLUX.Dispatcher;
-  static logger: ZLUX.Logger;
-  static registry: ZLUX.Registry;
+  pluginManager: any,
+  uriBroker: ZLUX.UriBroker,
+  dispatcher: ZLUX.Dispatcher,
+  logger: ZLUX.Logger,
+  registry: ZLUX.Registry,
   //previously was NotificationManager
-  static notificationManager: any;
-  static globalization: ZLUX.Globalization;
+  notificationManager: any,
+  globalization: ZLUX.Globalization
 }
 
 /*
