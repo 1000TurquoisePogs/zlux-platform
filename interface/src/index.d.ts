@@ -114,31 +114,33 @@ declare namespace ZLUX {
   }
 
   enum OSType {
-    AIX = 0,
-    Darwin = 1,
-    FreeBSD = 2,
-    Linux = 3,
-    OpenBSD = 4,
-    OS400 = 5,
-    'OS/390' = 6,
-    SunOS = 7,
-    Windows_NT = 8
+    Unknown = 0,
+    AIX = 1,
+    Darwin = 2,
+    FreeBSD = 3,
+    Linux = 4,
+    OpenBSD = 5,
+    OS400 = 6,
+    'OS/390' = 7,
+    SunOS = 8,
+    Windows_NT = 9
   }
 
   enum OSPlatform {
-    aix = 0, //can be i-series
-    darwin = 1,
-    freebsd = 2,
-    linux = 3,
-    openbsd = 4,
-    os390 = 5,
-    sunos = 6,
-    win32 = 7
+    unknown = 0,
+    aix = 1, //can be i-series
+    darwin = 2,
+    freebsd = 3,
+    linux = 4,
+    openbsd = 5,
+    os390 = 6,
+    sunos = 7,
+    win32 = 8
   }
 
   type ServiceOSInfo = {
-    platform: OSPlatform | undefined,
-    type: OSType | undefined
+    platform: OSPlatform,
+    type: OSType
   }
 
   
@@ -148,7 +150,24 @@ declare namespace ZLUX {
 
   type OSInfo = {
     zlux: ServiceOSInfo,
-    osagent: ServiceOSInfo
+    osAgent: ServiceOSInfo
+  }
+
+  type EnvironmentConstants = {
+    OSPlatform: any,
+    OSType: any
+  }
+  
+  /**
+     An interface for letting apps and the framework know how to tailor their behavior to the environment.
+     @interface
+  **/
+  interface EnvironmentManager {
+    isHostZOS():boolean;
+    isHostI():boolean;
+    isHostUnixoid():boolean;
+    isHostWindows():boolean;
+    constants: EnvironmentConstants;    
   }
 
 
@@ -719,6 +738,7 @@ declare type ZoweZLUXResources = {
   pluginManager: any,
   uriBroker: ZLUX.UriBroker,
   dispatcher: ZLUX.Dispatcher,
+  environmentManager: ZLUX.EnvironmentManager,
   logger: ZLUX.Logger,
   registry: ZLUX.Registry,
   //previously was NotificationManager
