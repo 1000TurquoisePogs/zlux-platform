@@ -216,6 +216,7 @@ declare namespace ZLUX {
     getWebContent():any;
     getType():PluginType;
     getCopyright(): string;
+    hasComponents(): boolean;
   }
 
   interface ContainerPluginDefinition {
