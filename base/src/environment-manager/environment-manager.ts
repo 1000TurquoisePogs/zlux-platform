@@ -39,7 +39,7 @@ export class EnvironmentConstants implements ZLUX.EnvironmentConstants {
 }
 
 export class EnvironmentManager implements ZLUX.EnvironmentManager {
-  private static UnixoidHosts = [OSType.AIX, OSType.Darwin, OSType.FreeBSD, OSType.Linux, OSType.OpenBSD, OSType.SunOS];
+  private static UnixoidHosts = ['AIX', 'Darwin', 'FreeBSD', 'Linux', 'OpenBSD', 'SunOS'];
   
   constructor(private readonly environmentInfo:ZLUX.EnvironmentInfo, private log: ZLUX.ComponentLogger) {
     this.log.info(`ZLUX backend OS=${JSON.stringify(this.environmentInfo.os)}`);
@@ -49,19 +49,19 @@ export class EnvironmentManager implements ZLUX.EnvironmentManager {
   
   /* TODO below methods assume agents are always needed and present */
   isHostZOS(): boolean {
-    return this.environmentInfo.os.osAgent.type == OSType['OS/390'];
+    return this.environmentInfo.os.osAgent.type == 'OS/390';
   }
 
   isHostI(): boolean {
-    return this.environmentInfo.os.osAgent.type == OSType.OS400;
+    return this.environmentInfo.os.osAgent.type == 'OS400';
   }
 
   isHostUnixoid():boolean {
-    return EnvironmentManager.UnixoidHosts.indexOf(this.environmentInfo.os.osAgent.type || -1) != -1;
+    return EnvironmentManager.UnixoidHosts.indexOf(this.environmentInfo.os.osAgent.type || '') != -1;
   }
 
   isHostWindows():boolean {
-    return this.environmentInfo.os.osAgent.type == OSType.Windows_NT;
+    return this.environmentInfo.os.osAgent.type == 'Windows_NT';
   }
 }
 
