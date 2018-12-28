@@ -1,9 +1,8 @@
 {
   "name": "zlux-platform",
   "version": "0.0.0-zlux.version.replacement",
-  "license": "private",
-  "description": "",
-  "main": "index.js",
+  "license": "EPL-2.0",
+  "description": "Interfaces and Framework Bits for zLUX",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,5 +11,14 @@
   "devDependencies": {
     "rxjs": "~6.2.2",
     "rxjs-compat": "~6.2.2"
-  }
+  },
+  "repository": {                                                                 
+    "type": "git",                                                                
+    "url": "git+https://github.com/zowe/zlux-platfrom.git"                  
+  },                                                                                
+  "homepage": "https://github.com/zowe/zlux-platform#readme",
+  "bugs": {                                                                       
+    "url": "https://github.com/zowe/zlux-platform/issues"                   
+  },
+  "dependencies": {}    
 }
