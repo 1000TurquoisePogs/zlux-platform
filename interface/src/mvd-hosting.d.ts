@@ -26,6 +26,13 @@ declare namespace MVDHosting {
     Application = 2
   }
 
+  export const enum SearchType {
+    System = 1,
+    Application = 2,
+    File = 3,
+    Folder = 4
+  }
+
   export const enum DESKTOP_PLUGIN_DEFAULTS {
     WIDTH = 809,
     HEIGHT = 1280
@@ -99,6 +106,15 @@ declare namespace MVDHosting {
 
   export interface NotificationWatcher {
     handleMessageAdded(): void;
+  }
+
+  export interface SearchManagerInterface {
+    getHandlerCount(): number ;
+    addSearchHandler(object: SearchWatcher): void;
+  }
+
+  export interface SearchWatcher {
+    handleSearchAdded(): void;
   }
 }
 
