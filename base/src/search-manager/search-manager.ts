@@ -8,8 +8,9 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {SearchResult} from './search-result';
+import {SearchResult} from './search-result.model';
 import {SearchOperators} from './search-operators/search-operators';
+
 export class SearchManager implements MVDHosting.SearchManagerInterface {
   private searchOperators:SearchOperators;
   private handlers: MVDHosting.SearchWatcher[];

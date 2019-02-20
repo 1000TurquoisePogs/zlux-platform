@@ -7,7 +7,9 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {Promise} from 'es6-promise'
+import {Promise} from 'es6-promise';
+import {SearchResult} from '../search-result.model';
+
 export class WebSearchOperator {
   href:string;
   query:string[];
@@ -43,7 +45,7 @@ export class WebSearchOperator {
 
   public addQueryStr(queryString:string):string{
     let output:string = "";
-    for (const indQuery in this.query){
+    for (const indQuery of this.query){
       output += "&" + indQuery + "=" + encodeURI(queryString);
     }
     return output;
@@ -53,7 +55,8 @@ export class WebSearchOperator {
     return this.queryHref + this.addQueryStr(queryString) + this.addCount();
   }
 
-  public getHttp(queryString:string):Promise<any>{
+  public getHttp(queryString:string):Promise<SearchResult>{
+    const self:any = this;
     return new Promise((resolve, reject) => {
   var request = new XMLHttpRequest();
   const processResultsInstance = this.processResults;
@@ -66,7 +69,7 @@ export class WebSearchOperator {
         case 304:
           try {
             var result = JSON.parse(this.responseText);
-            resolve(processResultsInstance(result, queryString));
+            resolve(processResultsInstance(result, queryString, self));
 
             // resolve(WebSearchOperator.processResults(result, queryString));
           } catch (error) {
@@ -82,19 +85,18 @@ export class WebSearchOperator {
   request.open("GET", this.constructUrl(queryString), true);
   request.send();
 });
-    // encodeURI
+
   }
-// TODO: place queryString in an object possibly?
-  public processResults(input:any, query:string):any[]{
-    // TODO: return query in object
-    console.log(query);
-    let result:any[] = [];
+  public processResults(input:any, query:string, instance:any):SearchResult{
+    let result:SearchResult = new SearchResult();
+    result.query = query;
+    let entities:any[] = [];
     let titles:string[] = [];
     let summaries:string[] = [];
     let hrefs:string[] = [];
-    const titleJson:string[] = this.title.split('.');
-    const summaryJson:string[] = this.summary.split('.');
-    const hrefJson:string[] = this.href.split('.');
+    const titleJson:string[] = instance.title.split('.');
+    const summaryJson:string[] = instance.summary.split('.');
+    const hrefJson:string[] = instance.href.split('.');
     if (input[titleJson[0]] &&
       input[titleJson[0]].length > 0 &&
       input[titleJson[0]][0][titleJson[2]] &&
@@ -120,14 +122,15 @@ export class WebSearchOperator {
         // each result has a title/summary/href, eg equal count
         if (hrefs.length === titles.length && hrefs.length === summaries.length){
           for (let i:number=0; i < hrefs.length; i++){
-            result.push({title:titles[i], summary:summaries[i], href:hrefs[i]});
+            entities.push({title:titles[i], summary:summaries[i], href:hrefs[i]});
           }
         }
+        result.entities = entities
       }
     return result;
   }
 
-  public getResults(queryString:string):Promise<any[]>{
+  public getResults(queryString:string):Promise<SearchResult>{
     return this.getHttp(queryString);
   }
 }

@@ -7,9 +7,11 @@
 
   Copyright Contributors to the Zowe Project.
 */
-// import config from '../config/types.json';
+// TODO:expand this to the app/web extensions
+import {config}  from '../config/ibmtypes';
 import {WebSearchOperator} from './web-search-operator';
 import {AppSearchOperator} from './app-search-operator';
+import {SearchResult} from '../search-result.model';
 
 export class SearchOperators {
   private websearchOperators:WebSearchOperator[];
@@ -19,36 +21,35 @@ export class SearchOperators {
     this.websearchOperators = new Array<WebSearchOperator>();
     this.appsearchOperators = new Array<AppSearchOperator>();
     // TODO consider creating a type for config when more solid
-    // const configJson:any = JSON.parse(config);
-    // for (let i:number = 0; i < configJson.length; i++){
-    //   if (configJson[i].format.toLowerCase() === "web"){
-    //     this.websearchOperators.push(new WebSearchOperator(
-    //       configJson[i].type,
-    //       configJson[i].title,
-    //       configJson[i].summary,
-    //       configJson[i].href,
-    //       configJson[i].count,
-    //       configJson[i].query,
-    //       configJson[i].queryHref));
-    //   }
-    //   else if (configJson[i].format.toLowerCase() === "app"){
-    //     this.appsearchOperators.push(new AppSearchOperator(
-    //       configJson[i].type,
-    //       configJson[i].title,
-    //       configJson[i].summary,
-    //       configJson[i].queryHref,
-    //       configJson[i].count,
-    //       configJson[i].appIdentifier
-    //     ));
-    //   }
-    // }
+    const configJson:any = config;
+    for (let i:number = 0; i < configJson.searchNodes.length; i++){
+      if (configJson.searchNodes[i].format.toLowerCase() === "web"){
+        this.websearchOperators.push(new WebSearchOperator(
+          configJson.searchNodes[i].type,
+          configJson.searchNodes[i].title,
+          configJson.searchNodes[i].summary,
+          configJson.searchNodes[i].href,
+          configJson.searchNodes[i].count,
+          configJson.searchNodes[i].query,
+          configJson.searchNodes[i].queryHref));
+      }
+      // else if (configJson[i].format.toLowerCase() === "app"){
+      //   this.appsearchOperators.push(new AppSearchOperator(
+      //     configJson.searchNodes[i].type,
+      //     configJson.searchNodes[i].title,
+      //     configJson.searchNodes[i].summary,
+      //     configJson.searchNodes[i].queryHref,
+      //     configJson.searchNodes[i].count,
+      //     configJson.searchNodes[i].appIdentifier
+      //   ));
+      // }
+    }
   }
 
   // TODO figure out interface to convey what sort of search is being conducted:
   //app/web/file/folder
-  // public executeSearch(queryString:string, context:SearchType){
 
-  public executeSearch(queryString:string):Promise<any>{
+  public executeSearch(queryString:string):Promise<SearchResult[]>{
     let promises_array:Array<any> = [];
     for (let i:number = 0; i < this.websearchOperators.length; i++){
        promises_array.push(this.websearchOperators[i].getResults(queryString));
