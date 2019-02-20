@@ -11,12 +11,9 @@
 import {SearchResult} from './search-result';
 import {SearchOperators} from './search-operators/search-operators';
 export class SearchManager implements MVDHosting.SearchManagerInterface {
-  // private searchResults: SearchResult[];
   private searchOperators:SearchOperators;
   private handlers: MVDHosting.SearchWatcher[];
-  private configSearchOptions():void{
 
-  }
   constructor() {
     this.handlers = new Array<MVDHosting.SearchWatcher>();
     this.searchOperators = new SearchOperators();
@@ -34,7 +31,6 @@ export class SearchManager implements MVDHosting.SearchManagerInterface {
     this.handlers.push(object);
   }
 }
-
 
 /*
   This program and the accompanying materials are

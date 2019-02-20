@@ -1,4 +1,3 @@
-
 /*
   This program and the accompanying materials are
   made available under the terms of the Eclipse Public License v2.0 which accompanies
@@ -8,25 +7,14 @@
 
   Copyright Contributors to the Zowe Project.
 */
-
-export abstract class SearchOperator {
-  title:string;
-  summary:string;
-  type:string;
-  count:number|null
-  abstract getResults(queryString:string):Promise<any[]>;
-
-  constructor(type:string,title:string,
-              summary:string,
-              count:number|null,
-              ){
-                this.title = title;
-                this.summary = summary;
-                this.type = type;
-                this.count = count;
-              }
-}
-
+jest.mock('./web-search-operator');
+import {WebSearchOperator} from './web-search-operator'
+describe('Test the WebSearchOperator functionality', () => {
+  it('calling constructor behaves as expected', () => {
+    const webSearch = new WebSearchOperator("blah","topics.#.label","topics.#.summary","topics.#.href",null, ["blah","blah"],"blah");
+    expect(WebSearchOperator).toHaveBeenCalledTimes(1);
+  });
+});
 
 /*
   This program and the accompanying materials are

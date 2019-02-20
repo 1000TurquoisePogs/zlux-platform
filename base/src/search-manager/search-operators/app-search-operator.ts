@@ -7,29 +7,19 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {SearchOperator} from './search-operator'
-export class AppSearchOperator extends SearchOperator {
-  private appIdentifier:string;
+import {Promise} from 'es6-promise'
+
+export class AppSearchOperator {
+  appIdentifier:string;
   constructor(
-    type:string,
-    title:string,
-    summary:string,
-    queryHref:string,
-    count:number|null,
     appIdentifier:string
   ){
-    super(
-      type,
-      title,
-      summary,
-      count,
-      queryHref
-    );
     this.appIdentifier = appIdentifier;
   }
   public getHttp(queryString:string):Promise<any>{
       return new Promise((resolve, reject) => {
         var request = new XMLHttpRequest();
+        const processResultsInstance = this.processResults;
         request.onreadystatechange = function () {
           if (this.readyState == 4) {
             /* Request complete */
@@ -38,7 +28,7 @@ export class AppSearchOperator extends SearchOperator {
               case 304:
                 try {
                   var result = JSON.parse(this.responseText);
-                  resolve(AppSearchOperator.processResults(result, queryString));
+                  resolve(processResultsInstance(result, queryString));
                 } catch (error) {
                   reject(error);
                 }
@@ -80,7 +70,7 @@ export class AppSearchOperator extends SearchOperator {
       return status;
   };
 
-  public static processResults (input:any, query:string){
+  public processResults (input:any, query:string):any[]{
     if (input && typeof(input) === "object" && input.pluginDefinitions){
       return input.pluginDefinitions
       .filter((instance:any)=>{
@@ -88,6 +78,12 @@ export class AppSearchOperator extends SearchOperator {
         instance.pluginType &&
         instance.pluginType.toLowerCase() === "application" &&
         AppSearchOperator.searchObjectAttributes(instance, query.toLowerCase()) === true
+      }).map((instance:any)=>{
+        return {
+          appIdentifier:instance.identifier,
+          summary: instance.webContent.descriptionDefault,
+          title: instance.webContent.launchDefinition.pluginShortNameDefault
+        }
       })
     }
     return [];

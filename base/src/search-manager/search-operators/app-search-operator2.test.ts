@@ -1,4 +1,3 @@
-
 /*
   This program and the accompanying materials are
   made available under the terms of the Eclipse Public License v2.0 which accompanies
@@ -8,26 +7,18 @@
 
   Copyright Contributors to the Zowe Project.
 */
+jest.mock('./app-search-operator');
+import AppSearchOperator from './app-search-operator'
 
-export abstract class SearchOperator {
-  title:string;
-  summary:string;
-  type:string;
-  count:number|null
-  abstract getResults(queryString:string):Promise<any[]>;
+describe('Test the AppSearchOperator.getHttp call flow', () => {
+  it('constructor call reacts as expected', () => {
+    const appSearch = new AppSearchOperator("blah");
+    appSearch.getHttp("hello");
+    expect(AppSearchOperator).toHaveBeenCalledTimes(1);
+    expect(appSearch.getHttp).toHaveBeenCalledTimes(1);
+  });
 
-  constructor(type:string,title:string,
-              summary:string,
-              count:number|null,
-              ){
-                this.title = title;
-                this.summary = summary;
-                this.type = type;
-                this.count = count;
-              }
-}
-
-
+});
 /*
   This program and the accompanying materials are
   made available under the terms of the Eclipse Public License v2.0 which accompanies
