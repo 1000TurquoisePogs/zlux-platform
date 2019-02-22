@@ -16,7 +16,7 @@ export class AppSearchOperator {
   ){
     this.appIdentifier = appIdentifier;
   }
-  public getHttp(queryString:string):Promise<any>{
+  public getHttp(queryString:string, searchCapability:string):Promise<any>{
       return new Promise((resolve, reject) => {
         var request = new XMLHttpRequest();
         const processResultsInstance = this.processResults;
@@ -28,7 +28,7 @@ export class AppSearchOperator {
               case 304:
                 try {
                   var result = JSON.parse(this.responseText);
-                  resolve(processResultsInstance(result, queryString));
+                  resolve(processResultsInstance(result, queryString, searchCapability));
                 } catch (error) {
                   reject(error);
                 }
@@ -44,8 +44,8 @@ export class AppSearchOperator {
       });
   }
 
-  public getResults(queryString:string):Promise<any[]>{
-    return this.getHttp(queryString);
+  public getResults(queryString:string, searchCapability:string):Promise<any[]>{
+    return this.getHttp(queryString, searchCapability);
   }
 
   private static searchObjectAttributes = (obj:any, search:string):boolean =>{
@@ -70,9 +70,10 @@ export class AppSearchOperator {
       return status;
   };
 
-  public processResults (input:any, query:string):any[]{
+  public processResults (input:any, query:string, searchCapability:string):any{
+    let result: any = {entities:[], query:query, type:searchCapability};
     if (input && typeof(input) === "object" && input.pluginDefinitions){
-      return input.pluginDefinitions
+      const entities:any[] = input.pluginDefinitions
       .filter((instance:any)=>{
         return instance &&
         instance.pluginType &&
@@ -80,13 +81,15 @@ export class AppSearchOperator {
         AppSearchOperator.searchObjectAttributes(instance, query.toLowerCase()) === true
       }).map((instance:any)=>{
         return {
-          appIdentifier:instance.identifier,
+          type: "app",
+          appId:instance.identifier,
           summary: instance.webContent.descriptionDefault,
-          title: instance.webContent.launchDefinition.pluginShortNameDefault
+          name: instance.webContent.launchDefinition.pluginShortNameDefault
         }
-      })
+      });
+      result.entities = entities;
     }
-    return [];
+    return result;
   }
 }
 

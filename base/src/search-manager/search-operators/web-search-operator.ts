@@ -55,7 +55,7 @@ export class WebSearchOperator {
     return this.queryHref + this.addQueryStr(queryString) + this.addCount();
   }
 
-  public getHttp(queryString:string):Promise<SearchResult>{
+  public getHttp(queryString:string, searchCapability:string):Promise<SearchResult>{
     const self:any = this;
     return new Promise((resolve, reject) => {
   var request = new XMLHttpRequest();
@@ -69,7 +69,7 @@ export class WebSearchOperator {
         case 304:
           try {
             var result = JSON.parse(this.responseText);
-            resolve(processResultsInstance(result, queryString, self));
+            resolve(processResultsInstance(result, queryString, searchCapability, self));
 
             // resolve(WebSearchOperator.processResults(result, queryString));
           } catch (error) {
@@ -87,9 +87,10 @@ export class WebSearchOperator {
 });
 
   }
-  public processResults(input:any, query:string, instance:any):SearchResult{
+  public processResults(input:any, query:string, searchCapability:string, instance:any):SearchResult{
     let result:SearchResult = new SearchResult();
     result.query = query;
+    result.type = searchCapability;
     let entities:any[] = [];
     let titles:string[] = [];
     let summaries:string[] = [];
@@ -130,8 +131,8 @@ export class WebSearchOperator {
     return result;
   }
 
-  public getResults(queryString:string):Promise<SearchResult>{
-    return this.getHttp(queryString);
+  public getResults(queryString:string, searchCapability:string):Promise<SearchResult>{
+    return this.getHttp(queryString, searchCapability);
   }
 }
 

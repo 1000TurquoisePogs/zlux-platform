@@ -20,8 +20,8 @@ export class SearchManager implements MVDHosting.SearchManagerInterface {
     this.searchOperators = new SearchOperators();
   }
 
-  conductSearches = (queryString:string):Promise<SearchResult[]> =>{
-    return this.searchOperators.executeSearch(queryString);
+  conductSearches = (queryString:string, searchCapabilities:string[], path?:string):Promise<SearchResult[]> =>{
+    return this.searchOperators.executeSearch(queryString, searchCapabilities, path);
   }
 
   getHandlerCount(): number {
