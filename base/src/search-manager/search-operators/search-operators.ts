@@ -12,7 +12,7 @@ import {WebSearchOperator} from './web-search-operator';
 import {AppSearchOperator} from './app-search-operator';
 import {FileSearchOperator} from './file-search-operator';
 import {FolderSearchOperator} from './folder-search-operator';
-import {SearchResult} from '../search-result.model';
+import {SearchResult} from '../models/search-result.model';
 
 
 export class SearchOperators {

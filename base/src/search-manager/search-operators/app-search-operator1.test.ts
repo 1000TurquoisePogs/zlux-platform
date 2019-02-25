@@ -7,7 +7,7 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import AppSearchOperator from './app-search-operator'
+import {AppSearchOperator} from './app-search-operator'
 import {Promise} from 'es6-promise'
 
 // TODO: figure out why the following json import won't work (resolveJsonModule is set in tesconfig.json):

@@ -8,7 +8,8 @@
   Copyright Contributors to the Zowe Project.
 */
 import {Promise} from 'es6-promise'
-
+import {AppEntity} from '../models/app-entity.model'
+import {AppSearchResult} from '../models/app-search.result.model'
 export class AppSearchOperator {
   appIdentifier:string;
   constructor(
@@ -71,9 +72,11 @@ export class AppSearchOperator {
   };
 
   public processResults (input:any, query:string, searchCapability:string):any{
-    let result: any = {entities:[], query:query, type:searchCapability};
+    let result: AppSearchResult = new AppSearchResult();
+    result.query = query;
+    result.type= searchCapability;
     if (input && typeof(input) === "object" && input.pluginDefinitions){
-      const entities:any[] = input.pluginDefinitions
+      const entities:AppEntity[] = input.pluginDefinitions
       .filter((instance:any)=>{
         return instance &&
         instance.pluginType &&

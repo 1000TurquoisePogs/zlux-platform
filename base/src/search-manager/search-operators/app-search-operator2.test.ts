@@ -8,7 +8,7 @@
   Copyright Contributors to the Zowe Project.
 */
 jest.mock('./app-search-operator');
-import AppSearchOperator from './app-search-operator'
+import {AppSearchOperator} from './app-search-operator'
 
 describe('Test the AppSearchOperator.getHttp call flow', () => {
   it('constructor call reacts as expected', () => {
