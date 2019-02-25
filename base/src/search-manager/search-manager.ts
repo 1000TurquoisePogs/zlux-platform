@@ -1,4 +1,3 @@
-
 /*
   This program and the accompanying materials are
   made available under the terms of the Eclipse Public License v2.0 which accompanies
@@ -8,7 +7,7 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {SearchResult} from './search-result.model';
+import {SearchResult} from './models/search-result.model';
 import {SearchOperators} from './search-operators/search-operators';
 
 export class SearchManager implements MVDHosting.SearchManagerInterface {
@@ -20,10 +19,9 @@ export class SearchManager implements MVDHosting.SearchManagerInterface {
     this.searchOperators = new SearchOperators();
   }
 
-  conductSearches = (queryString:string, searchCapabilities:string[], path?:string):Promise<SearchResult[]> =>{
-    return this.searchOperators.executeSearch(queryString, searchCapabilities, path);
+  conductSearches(queryString:string, searchCapabilities:string[]):Promise<SearchResult[]>{
+    return this.searchOperators.executeSearch(queryString, searchCapabilities);
   }
-
   getHandlerCount(): number {
     return this.handlers.length;
   }

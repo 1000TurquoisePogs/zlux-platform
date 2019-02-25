@@ -8,12 +8,12 @@
   Copyright Contributors to the Zowe Project.
 */
 import {Promise} from 'es6-promise';
-import {SearchResult} from '../search-result.model';
+import {SearchResult} from '../models/search-result.model';
+import { WebEntity } from '../models/web-entity.model';
 
 export class WebSearchOperator {
   href:string;
   query:string[];
-
   queryHref:string;
   title:string;
   summary:string;
@@ -28,7 +28,6 @@ export class WebSearchOperator {
     query:string[],
     queryHref:string
   ){
-
     this.queryHref = queryHref;
     this.title = title;
     this.summary = summary;
@@ -56,7 +55,7 @@ export class WebSearchOperator {
   }
 
   public getHttp(queryString:string, searchCapability:string):Promise<SearchResult>{
-    const self:any = this;
+    const self:WebSearchOperator = this;
     return new Promise((resolve, reject) => {
   var request = new XMLHttpRequest();
   const processResultsInstance = this.processResults;
@@ -70,8 +69,6 @@ export class WebSearchOperator {
           try {
             var result = JSON.parse(this.responseText);
             resolve(processResultsInstance(result, queryString, searchCapability, self));
-
-            // resolve(WebSearchOperator.processResults(result, queryString));
           } catch (error) {
             reject(error);
           }
@@ -87,11 +84,9 @@ export class WebSearchOperator {
 });
 
   }
-  public processResults(input:any, query:string, searchCapability:string, instance:any):SearchResult{
-    let result:SearchResult = new SearchResult();
-    result.query = query;
-    result.type = searchCapability;
-    let entities:any[] = [];
+  public processResults(input:any, query:string, searchCapability:string, instance:WebSearchOperator):SearchResult{
+    let result:SearchResult = new SearchResult({query:query, type:searchCapability});
+    let entities:WebEntity[] = [];
     let titles:string[] = [];
     let summaries:string[] = [];
     let hrefs:string[] = [];
@@ -123,7 +118,7 @@ export class WebSearchOperator {
         // each result has a title/summary/href, eg equal count
         if (hrefs.length === titles.length && hrefs.length === summaries.length){
           for (let i:number=0; i < hrefs.length; i++){
-            entities.push({title:titles[i], summary:summaries[i], href:hrefs[i]});
+            entities.push(new WebEntity({title:titles[i], summary:summaries[i], href:hrefs[i]}));
           }
         }
         result.entities = entities

@@ -109,6 +109,7 @@ declare namespace MVDHosting {
   }
 
   export interface SearchManagerInterface {
+    conductSearches(queryString:string, searchCapabilities:string[]):any;
     getHandlerCount(): number ;
     addSearchHandler(object: SearchWatcher): void;
   }
