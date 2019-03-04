@@ -116,6 +116,7 @@ declare namespace MVDHosting {
 
   export interface SearchWatcher {
     handleSearchAdded(): void;
+
   }
 }
 

@@ -13,8 +13,7 @@ import {AppSearchOperator} from './app-search-operator';
 import {FileSearchOperator} from './file-search-operator';
 import {FolderSearchOperator} from './folder-search-operator';
 import {SearchResult} from '../models/search-result.model';
-
-
+import {SubsystemsSearchOperator} from './subsystems-search-operator';
 export class SearchOperators {
   private websearchOperators:WebSearchOperator[];
   private appsearchOperators:AppSearchOperator[];
@@ -22,13 +21,14 @@ export class SearchOperators {
   //TODO wrap file/folder into one
   //TODO offload capabilities to json
   private filesearchOperator:FileSearchOperator;
-  private foldersearchOperator:FolderSearchOperator
+  private foldersearchOperator:FolderSearchOperator;
+  private subsystemsSearchOperator:SubsystemsSearchOperator;
   constructor(){
     this.websearchOperators = new Array<WebSearchOperator>();
     this.appsearchOperators = new Array<AppSearchOperator>();
     this.filesearchOperator = new FileSearchOperator();
     this.foldersearchOperator = new FolderSearchOperator();
-
+    this.subsystemsSearchOperator = new SubsystemsSearchOperator();
     // TODO consider creating a type for config when more solid
     const configJson:any = config;
     for (let i:number = 0; i < configJson.searchNodes.length; i++){
@@ -52,7 +52,7 @@ export class SearchOperators {
   public decodeQueryStringPath(inputStr:string):string{
     const parts:string[] = inputStr.split("&");
     for (const part of parts){
-      if (part.toLowerCase().indexOf("path=")){
+      if (part.toLowerCase().indexOf("path=") !== -1){
         return part.substring(5);
       }
     }
@@ -62,7 +62,7 @@ export class SearchOperators {
   public decodeQueryStringSearch(inputStr:string):string{
     const parts:string[] = inputStr.split("&");
     for (const part of parts){
-      if (part.toLowerCase().indexOf("search=")){
+      if (part.toLowerCase().indexOf("search=")  !== -1){
         return decodeURI(part.substring(7));
       }
     }
@@ -76,7 +76,7 @@ export class SearchOperators {
       for (let i:number = 0; i < this.websearchOperators.length; i++){
           if (searchCapability.toLowerCase() === this.websearchOperators[i].type.toLowerCase()){
             promises_array.push(this.websearchOperators[i].getResults(
-              this.decodeQueryStringSearch(queryString), 
+              this.decodeQueryStringSearch(queryString),
               searchCapability));
             breakSet=true;
             break;
@@ -101,6 +101,10 @@ export class SearchOperators {
         promises_array.push(this.foldersearchOperator.getResults(
           this.decodeQueryStringSearch(queryString),
           this.decodeQueryStringPath(queryString), "folder"));
+      }
+      if (!breakSet && searchCapability.toLowerCase() === "subsystems"){
+        promises_array.push(this.subsystemsSearchOperator.getResults(
+          this.decodeQueryStringSearch(queryString), "subsystems"));
       }
     }
     return Promise.all(promises_array);

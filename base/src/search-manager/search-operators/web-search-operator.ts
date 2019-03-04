@@ -84,6 +84,9 @@ export class WebSearchOperator {
 });
 
   }
+  public stripFormatting(input:string):string{
+    return input.replace(/<b>/g,'').replace(/<\/b>/g,'');
+  }
   public processResults(input:any, query:string, searchCapability:string, instance:WebSearchOperator):SearchResult{
     let result:SearchResult = new SearchResult({query:query, type:searchCapability});
     let entities:WebEntity[] = [];
@@ -104,16 +107,21 @@ export class WebSearchOperator {
       input[hrefJson[0]][0][hrefJson[2]]
     ){
       for(let i:number= 0; i < input[titleJson[0]].length; i++){
-          if (input[titleJson[0]][i][titleJson[2]])
-          titles.push(input[titleJson[0]][i][titleJson[2]]);
+          if (input[titleJson[0]][i][titleJson[2]]){
+            titles.push(input[titleJson[0]][i][titleJson[2]]);
+          }
         }
         for(let i:number= 0; i < input[summaryJson[0]].length; i++){
-          if (input[summaryJson[0]][i][summaryJson[2]])
-          summaries.push(input[summaryJson[0]][i][summaryJson[2]]);
+          if (input[summaryJson[0]][i][summaryJson[2]]){
+            const sum:string = instance.stripFormatting(input[summaryJson[0]][i][summaryJson[2]])
+            summaries.push(sum);
+          }
         }
         for(let i:number= 0; i < input[hrefJson[0]].length; i++){
           if (input[hrefJson[0]][i][hrefJson[2]])
-          hrefs.push(input[hrefJson[0]][i][hrefJson[2]]);
+          {
+            hrefs.push(input[hrefJson[0]][i][hrefJson[2]]);
+          }
         }
         // each result has a title/summary/href, eg equal count
         if (hrefs.length === titles.length && hrefs.length === summaries.length){
