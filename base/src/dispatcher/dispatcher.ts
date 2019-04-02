@@ -4,9 +4,9 @@
   This program and the accompanying materials are
   made available under the terms of the Eclipse Public License v2.0 which accompanies
   this distribution, and is available at https://www.eclipse.org/legal/epl-v20.html
-  
+
   SPDX-License-Identifier: EPL-2.0
-  
+
   Copyright Contributors to the Zowe Project.
 */
 
@@ -25,7 +25,7 @@
 export class RecognizerIndex {
    propertyName:string;
    valueMap:Map<any,RecognitionRule[]> = new Map();
-   
+
    constructor(propertyName:string){
      this.propertyName = propertyName;
    }
@@ -63,14 +63,15 @@ export class Dispatcher implements ZLUX.Dispatcher {
    postMessageCallback: any = null;
    public readonly constants:DispatcherConstants = new DispatcherConstants();
    private log:ZLUX.ComponentLogger;
-  
+   private searchWatchers: Map<String,Array<ZLUX.SearchWatcher>> = new Map();
+
   constructor(logger: ZLUX.Logger){
      /* dispatcher created early on - refering to logger from window object as a result */
      this.log = logger.makeComponentLogger("ZLUX.Dispatcher");
      this.runHeartbeat();
    }
 
-  
+
    registerApplicationCallbacks(plugin:ZLUX.Plugin, applicationInstanceId: any, callbacks:ZLUX.ApplicationCallbacks): void {
      let wrapper = this.getAppInstanceWrapper(plugin,applicationInstanceId);
      if (wrapper) {
@@ -109,7 +110,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
             });
          }
        }
-      
+
      }
 
      window.setTimeout(dispatcherHeartbeatFunction,Dispatcher.dispatcherHeartbeatInterval);
@@ -157,6 +158,14 @@ export class Dispatcher implements ZLUX.Dispatcher {
          watchers[i].instanceAdded(applicationInstanceId, isEmbedded);
        }
      }
+
+     let swatchers = this.searchWatchers.get(key);
+     if (swatchers) {
+       for (let i = 0; i < swatchers.length; i++) {
+         swatchers[i].searchInstanceAdded(applicationInstanceId);
+       }
+     }
+
      // Michael - how to get window manager, IE, how to get interface to look up plugins,
      // or be called on plugin instance lifecycle stuff.
    }
@@ -197,7 +206,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
      //   prop not indexed
      //     use all recognizer list
      // need iteration on propertyNames for tuple
-     // 
+     //
      this.log.debug("getRecognizers"+JSON.stringify(tuple));
      for (let propertyName in tuple){
        let recognizerIndex:RecognizerIndex|undefined = this.indexedRecognizers.get(propertyName);
@@ -214,7 +223,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
          }
          return matchedRecognizers;  // since we had an index, good enough
        }
-     } 
+     }
      this.recognizers.forEach( (recognizer:RecognitionRule) => {
        if (recognizer.predicate.match(tuple)){
          matchedRecognizers.push(recognizer);
@@ -257,7 +266,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
       throw new Error('Error in recognizer definition');
     }
   }
-  
+
    addRecognizer(predicate:RecognitionClause, actionID:string):void{
      let recognitionRule:RecognitionRule = new RecognitionRule(predicate,actionID);
      this.recognizers.push(recognitionRule);
@@ -274,7 +283,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
            // filter crap - are the screen ID's broken??  - should be no screen ID in tuple on first page
            // why not getting 5 things?
            if (recognizerIndex){
-             let ruleArray:RecognitionRule[]|undefined = recognizerIndex.valueMap.get(propertyValue); 
+             let ruleArray:RecognitionRule[]|undefined = recognizerIndex.valueMap.get(propertyValue);
              if (!ruleArray){
                ruleArray = [];
                recognizerIndex.valueMap.set(propertyValue,ruleArray);
@@ -288,6 +297,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
 
   registerPluginWatcher(plugin:ZLUX.Plugin, watcher: ZLUX.PluginWatcher) {
     let key = plugin.getKey();
+
     let watchers = this.pluginWatchers.get(key);
     if (!watchers) {
       watchers = new Array<ZLUX.PluginWatcher>();
@@ -312,7 +322,36 @@ export class Dispatcher implements ZLUX.Dispatcher {
       return false;
     }
   }
-    
+
+  registerSearchWatcher(plugin:ZLUX.Plugin, watcher: ZLUX.SearchWatcher):void{
+    let key = plugin.getKey();
+    let swatchers = this.searchWatchers.get(key);
+    if (plugin.getSearchCapabilities().length > 0){
+      if (!swatchers) {
+        swatchers = new Array<ZLUX.SearchWatcher>();
+        this.searchWatchers.set(key,swatchers);
+      }
+      swatchers.push(watcher);
+    }
+
+  }
+
+  deregisterSearchWatcher(plugin:ZLUX.Plugin, swatcher: ZLUX.SearchWatcher): boolean {
+    let key = plugin.getKey();
+    let swatchers = this.searchWatchers.get(key);
+    if (!swatchers) {
+      return false;
+    }
+    else {
+      for (let i = 0; i < swatchers.length; i++) {
+        if (swatchers[i] == swatcher) {
+          swatchers.splice(i,1);
+          return true;
+        }
+      }
+      return false;
+    }
+  }
 
 /* what will callback be called with */
   registerAction(action: Action):void {
@@ -327,14 +366,14 @@ export class Dispatcher implements ZLUX.Dispatcher {
 
    static isAtomicType(specType:string):boolean{
      return ((specType === "boolean") ||
-             (specType === "number") ||	
+             (specType === "number") ||
              (specType === "string") ||
              (specType === "symbol") ||
              (specType === "function"));
    }
 
-   evaluateTemplateOp(operation:any, 
-                      eventContext:any, 
+   evaluateTemplateOp(operation:any,
+                      eventContext:any,
                       localContext:any):any{
      let opName:string = operation.op as string;
      let dispatcher:Dispatcher = this;
@@ -384,7 +423,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
              part = dispatcher.evaluateTemplateOp(part,eventContext,{});
            } else {
              part = dispatcher.buildObjectFromTemplate(part,eventContext);
-           } 
+           }
          } else if (Dispatcher.isAtomicType((typeof part))){
            // do nothing
          } else {
@@ -423,12 +462,12 @@ export class Dispatcher implements ZLUX.Dispatcher {
         }
       }
       return outputObject;
-   }        
+   }
 
    makeAction(id: string, defaultName: string, targetMode: ActionTargetMode, type: ActionType, targetPluginID: string, primaryArgument: any):Action{
      return new Action(id,defaultName,targetMode,type,targetPluginID,primaryArgument);
    }
-  
+
   private getAppInstanceWrapper(plugin:ZLUX.Plugin, id:MVDHosting.InstanceId) :ApplicationInstanceWrapper|null{
     let wrappers:ApplicationInstanceWrapper[]|undefined = this.instancesForTypes.get(plugin.getKey());
     this.log.debug("found some wrappers "+wrappers);
@@ -448,7 +487,7 @@ export class Dispatcher implements ZLUX.Dispatcher {
       return Promise.reject("no launch callback established");
     }
     let launchMetadata = this.buildObjectFromTemplate(action.primaryArgument, eventContext);
-    let appPromise = 
+    let appPromise =
       this.launchCallback(plugin, launchMetadata).then( (newAppID:MVDHosting.InstanceId) => {
         let wrapper = this.getAppInstanceWrapper(plugin,newAppID);
         if (wrapper){
@@ -544,7 +583,7 @@ export enum RecognitionOp {
   AND,
   OR,
   NOT,
-  PROPERTY_EQ,        
+  PROPERTY_EQ,
   SOURCE_PLUGIN_TYPE,      // syntactic sugar
   MIME_TYPE,        // ditto
 }
@@ -567,8 +606,8 @@ export class RecognizerAnd extends RecognitionClause {
   constructor(...conjuncts:(RecognitionClause)[]){
     super(RecognitionOp.AND);
     this.subClauses = conjuncts;
-  } 
-  
+  }
+
   match(tuple:any):boolean{
     for (let subClause of this.subClauses){
       if (!(subClause as RecognitionClause).match(tuple)){
@@ -583,7 +622,7 @@ export class RecognizerOr extends RecognitionClause {
   constructor(...disjuncts:(RecognitionClause|number|string)[]){
     super(RecognitionOp.OR);
     this.subClauses = disjuncts;
-  } 
+  }
 
   match(tuple:any):boolean{
     for (let subClause of this.subClauses){
@@ -625,7 +664,6 @@ export enum ActionType {       // not all actions are meaningful for all target 
   Maximize,
   Close,                       // may need to call a "close handler"
 } 
-  
 
 export class Action implements ZLUX.Action {
     id: string;           // id of action itself.
@@ -637,16 +675,16 @@ export class Action implements ZLUX.Action {
     targetPluginID: string;
     primaryArgument: any;
 
-    constructor(id: string, 
+    constructor(id: string,
                 defaultName: string,
-                targetMode: ActionTargetMode, 
+                targetMode: ActionTargetMode,
                 type: ActionType,
                 targetPluginID: string,
                 primaryArgument:any) {
        this.id = id;
        this.defaultName = defaultName;
        // proper name for ID/tye
-       this.targetPluginID = targetPluginID; 
+       this.targetPluginID = targetPluginID;
        this.targetMode = targetMode;
        this.type = type;
        this.primaryArgument = primaryArgument;
@@ -662,9 +700,8 @@ export class Action implements ZLUX.Action {
   This program and the accompanying materials are
   made available under the terms of the Eclipse Public License v2.0 which accompanies
   this distribution, and is available at https://www.eclipse.org/legal/epl-v20.html
-  
+
   SPDX-License-Identifier: EPL-2.0
-  
+
   Copyright Contributors to the Zowe Project.
 */
-

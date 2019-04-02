@@ -26,7 +26,10 @@ declare namespace ZLUX {
      */
     registerPluginWatcher(plugin:ZLUX.Plugin, watcher: PluginWatcher): void;
     //only removes watcher when same exact object
-    deregisterPluginWatcher(plugin:ZLUX.Plugin, watcher: PluginWatcher): boolean; 
+    deregisterPluginWatcher(plugin:ZLUX.Plugin, watcher: PluginWatcher): boolean;
+    registerSearchWatcher(plugin:ZLUX.Plugin, watcher: SearchWatcher): void;
+    //only removes watcher when same exact object
+    deregisterSearchWatcher(plugin:ZLUX.Plugin, watcher: SearchWatcher): boolean;
     registerPluginInstance(plugin: Plugin, applicationInstanceId: any, isIframe: boolean, isEmbedded?:boolean): void;
     deregisterPluginInstance(plugin: Plugin, applicationInstanceId: any): void;
     setLaunchHandler(launchCallback: any): void;
@@ -103,7 +106,7 @@ declare namespace ZLUX {
     log(minimumLevel: number, ...loggableItems:any[]): void;
     info(...loggableItems:any[]): void;
     warn(...loggableItems:any[]): void;
-    severe(...loggableItems:any[]): void;    
+    severe(...loggableItems:any[]): void;
     debug(...loggableItems:any[]): void;
     makeSublogger(componentNameSuffix: string): ComponentLogger;
   }
@@ -128,8 +131,8 @@ declare namespace ZLUX {
     datasetMetadataUri(dsn: string, detail?: string, types?: string, listMembers?: boolean, workAreaSize?: number, includeMigrated?: boolean, includeUnprintable?: boolean, resumeName?: string, resumeCatalogName?: string): string;
     datasetContentsUri(dsn: string): string;
     VSAMdatasetContentsUri(dsn: string, closeAfter?: boolean): string;
-    unixFileUri(route: string, absPath: string, sourceEncoding?: string | undefined, targetEncoding?: string | undefined, 
-                 newName?: string | undefined, forceOverwrite?: boolean | undefined, sessionID?: number | undefined, 
+    unixFileUri(route: string, absPath: string, sourceEncoding?: string | undefined, targetEncoding?: string | undefined,
+                 newName?: string | undefined, forceOverwrite?: boolean | undefined, sessionID?: number | undefined,
                  lastChunk?: boolean | undefined): string;
     rasUri(uri: string): string;
     serverRootUri(uri: string): string;
@@ -149,16 +152,21 @@ declare namespace ZLUX {
      */
     //pluginConfigForGroupUri(pluginDefinition: ZLUX.Plugin, group: string, resourcePath: string, resourceName?: string): string;
     pluginConfigUri(pluginDefinition: ZLUX.Plugin, resourcePath: string, resourceName?: string): string;
-    pluginWSUri(pluginDefinition: Plugin, serviceName: string, 
+    pluginWSUri(pluginDefinition: Plugin, serviceName: string,
         relativePath: string, version?: string): string;
-    pluginRESTUri(pluginDefinition: Plugin, serviceName: string, 
+    pluginRESTUri(pluginDefinition: Plugin, serviceName: string,
         relativePath: string, version?: string): string;
   }
 
-  
+
   interface PluginWatcher {
     instanceAdded(instanceId: MVDHosting.InstanceId, isEmbedded: boolean|undefined): void;
     instanceRemoved(instanceId: MVDHosting.InstanceId): void;
+  }
+
+  interface SearchWatcher {
+    searchInstanceAdded(instanceId: MVDHosting.InstanceId): void;
+    searchInstanceRemoved(instanceId: MVDHosting.InstanceId): void;
   }
 
   const enum PluginType {
@@ -171,6 +179,7 @@ declare namespace ZLUX {
     getIdentifier():string;
     getVersion():string;
     getWebContent():any;
+    getSearchCapabilities():any[];
     getType():PluginType;
     getCopyright(): string;
     hasComponents(): boolean;
