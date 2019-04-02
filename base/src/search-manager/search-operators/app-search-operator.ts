@@ -7,7 +7,7 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {Promise} from 'es6-promise'
+
 import {AppEntity} from '../models/app-entity.model'
 import {AppSearchResult} from '../models/app-search.result.model'
 export class AppSearchOperator {

@@ -7,7 +7,6 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {Promise} from 'es6-promise';
 import {SearchResult} from '../models/search-result.model';
 import { WebEntity } from '../models/web-entity.model';
 

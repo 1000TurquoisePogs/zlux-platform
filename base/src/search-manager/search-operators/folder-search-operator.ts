@@ -7,7 +7,7 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {Promise} from 'es6-promise'
+
 import {FileSearchOperator} from './file-search-operator'
 export class FolderSearchOperator {
   fileSearchOperator:FileSearchOperator;

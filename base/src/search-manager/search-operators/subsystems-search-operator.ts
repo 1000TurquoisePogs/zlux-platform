@@ -7,7 +7,7 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {Promise} from 'es6-promise';
+
 import {SubsystemEntity} from '../models/subsystem-entity.model'
 import {SearchResult} from '../models/search-result.model'
 import {Subsystems} from '../models/subsystems-search.result.model'

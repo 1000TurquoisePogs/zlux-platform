@@ -7,7 +7,7 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {Promise} from 'es6-promise'
+
 import {Line} from '../models/line.model'
 import {File} from '../models/file.model'
 
