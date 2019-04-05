@@ -115,7 +115,17 @@ declare namespace ZLUX {
     makeComponentLogger(componentName: string): ComponentLogger;
     setLogLevelForComponentName(componentName: string, level: number): void;
   }
-
+ 
+  export interface SearchManager {
+    search(queryString:string,
+           searchTopics:string[],
+           handlerIds:string[],
+           limit?: number):Promise<MVDHosting.SearchResult[]>;
+    
+    getHandlers(): Set<MVDHosting.SearchHandler>;
+    addSearchHandler(handler: MVDHosting.SearchHandler): void;
+  }
+  
   interface Globalization {
     getLanguage(): string;
     getLocale(): string;
@@ -710,6 +720,7 @@ declare class ZoweZLUXResources {
   //previously was NotificationManager
   static notificationManager: any;
   static globalization: ZLUX.Globalization;
+  static searchManager:  ZLUX.SearchManager;
 }
 
 /*

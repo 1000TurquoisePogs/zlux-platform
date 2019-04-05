@@ -1,18 +1,26 @@
-import { SearchResult } from '../models/search-result.model';
-export declare class WebSearchOperator {
-    href: string;
-    query: string[];
-    queryHref: string;
-    title: string;
-    summary: string;
-    type: string;
-    count: number | null;
-    constructor(type: string, title: string, summary: string, href: string, count: number | null, query: string[], queryHref: string);
-    addCount(): string;
-    addQueryStr(queryString: string): string;
-    constructUrl(queryString: string): string;
-    getHttp(queryString: string, searchCapability: string): Promise<SearchResult>;
-    stripFormatting(input: string): string;
-    processResults(input: any, query: string, searchCapability: string, instance: WebSearchOperator): SearchResult;
-    getResults(queryString: string, searchCapability: string): Promise<SearchResult>;
+export declare class WebSearchHandler implements MVDHosting.SearchHandler {
+    private id;
+    private shortName;
+    private longName;
+    private topics;
+    protected title: string;
+    protected summary: string;
+    protected queryParm: string;
+    protected queryHref: string;
+    protected resultHref: string;
+    protected requestType: number;
+    protected resultHrefPrefix?: string | undefined;
+    protected limitParm?: string | undefined;
+    constructor(id: string, shortName: string, longName: string, topics: string[], title: string, summary: string, queryParm: string, queryHref: string, resultHref: string, requestType: number, resultHrefPrefix?: string | undefined, limitParm?: string | undefined);
+    private addLimit;
+    private constructUrl;
+    private getHttp;
+    protected stripFormatting(input: string): string;
+    private processResults;
+    search(queryString: string, limit?: number): Promise<MVDHosting.SearchResult>;
+    getType(): string;
+    getId(): string;
+    getLongName(): string;
+    getShortName(): string;
+    getTopics(): string[];
 }

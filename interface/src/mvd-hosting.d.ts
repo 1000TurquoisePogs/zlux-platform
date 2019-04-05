@@ -26,13 +26,6 @@ declare namespace MVDHosting {
     Application = 2
   }
 
-  export const enum SearchType {
-    System = 1,
-    Application = 2,
-    File = 3,
-    Folder = 4
-  }
-
   export const enum DESKTOP_PLUGIN_DEFAULTS {
     WIDTH = 809,
     HEIGHT = 1280
@@ -109,15 +102,41 @@ declare namespace MVDHosting {
     handleMessageAdded(): void;
   }
 
-  export interface SearchManagerInterface {
-    conductSearches(queryString:string, searchCapabilities:string[]):any;
-    getHandlerCount(): number ;
-    addSearchHandler(object: SearchWatcher): void;
+  export const enum SearchType {
+    Web = 1,
+    App = 2,
+    Audio = 3,
+    Video = 4,
+    File = 5,
+    Folder = 6
   }
 
-  export interface SearchWatcher {
-    handleSearchAdded(): void;
+  export type SearchData = {
+    title: string,
+    summary: string,
+//    appIdentifier: string | undefined,
+    data: any | undefined
+  }
 
+  export type WebSearchData = {
+    href: string
+  }
+  
+  export type SearchResult = {
+    type: SearchType,
+    id: string,
+    shortName: string,
+    longName: string,
+    entries: SearchData[]
+  }
+  
+  export interface SearchHandler {
+    search(queryString:string, limit?: number): Promise<MVDHosting.SearchResult>;
+    getType(): string;
+    getId(): string;
+    getShortName(): string;
+    getLongName(): string;
+    getTopics(): string[];
   }
 }
 
