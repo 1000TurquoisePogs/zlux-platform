@@ -114,8 +114,7 @@ declare namespace MVDHosting {
   export type SearchData = {
     title: string,
     summary: string,
-//    appIdentifier: string | undefined,
-    data: any | undefined
+    data: any
   }
 
   export type WebSearchData = {
@@ -123,20 +122,24 @@ declare namespace MVDHosting {
   }
   
   export type SearchResult = {
-    type: SearchType,
+    type: string,
     id: string,
     shortName: string,
     longName: string,
     entries: SearchData[]
   }
   
-  export interface SearchHandler {
-    search(queryString:string, limit?: number): Promise<MVDHosting.SearchResult>;
-    getType(): string;
-    getId(): string;
-    getShortName(): string;
-    getLongName(): string;
-    getTopics(): string[];
+  export abstract class SearchHandler {
+    protected context: any;
+    constructor(context: any) {this.context = context;}
+    getType(): string { return this.context.definition.type };
+    getId(): string { return this.context.id };
+    getShortName(): string { return this.context.definition.name };
+    getLongName(): string { return this.context.definition.description };
+    getTopics(): string[] { return this.context.definition.topics };
+
+    abstract search(queryString:string, limit?: number): Promise<MVDHosting.SearchResult>;
+
   }
 }
 

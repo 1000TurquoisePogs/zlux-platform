@@ -11,38 +11,27 @@
 const REQUEST_TYPE_QUERY = 0;
 //const REQUEST_TYPE_POST = 1;
 
-export class WebSearchHandler implements MVDHosting.SearchHandler {
-  constructor(
-    private id:string,
-    private shortName: string,
-    private longName:string,
-    private topics:string[],
-    protected title:string,
-    protected summary:string,
-    protected queryParm:string,
-    protected queryHref:string,
-    protected resultHref:string,
-    protected requestType: number,
-    protected resultHrefPrefix?: string,
-    protected limitParm?: string
-    
-  ){
+export class WebSearchHandler {//extends MVDHosting.SearchHandler {
+  constructor(protected context: any){
+//    super(context);    
   }
 
   private addLimit(limit?: number):string{
-    return this.limitParm !== undefined && limit !== undefined ? `&${this.limitParm}=${limit}` : "";
+    return this.context.definition.limitParm !== undefined && limit !== undefined
+      ?  `&${this.context.definition.limitParm}=${limit}`
+      : "";
   }
 
   private constructUrl(queryString:string, limit?: number):string{
-    if (this.requestType === REQUEST_TYPE_QUERY) {
-      const pos = this.queryHref.indexOf(`${this.queryParm}=%q`);
+    if (this.context.definition.requestType === REQUEST_TYPE_QUERY) {
+      const pos = this.context.definition.queryHref.indexOf(`${this.context.definition.queryParm}=%q`);
       if (pos == -1) {
         throw new Error(`Cannot find query substitution spot`);
       }
-      const offset = pos+this.queryParm.length+1;
-      return this.queryHref.substring(0,offset) + queryString
-        + this.queryHref.substring(offset+2) + this.addLimit(limit);
-    } else { return this.queryHref; }
+      const offset = pos+this.context.definition.queryParm.length+1;
+      return this.context.definition.queryHref.substring(0,offset) + queryString
+        + this.context.definition.queryHref.substring(offset+2) + this.addLimit(limit);
+    } else { return this.context.definition.queryHref; }
   }
 
   private getHttp(queryString:string, limit?: number):Promise<MVDHosting.SearchResult>{
@@ -70,7 +59,7 @@ export class WebSearchHandler implements MVDHosting.SearchHandler {
           }
         }
       };
-      if (this.requestType === REQUEST_TYPE_QUERY) {
+      if (this.context.definition.requestType === REQUEST_TYPE_QUERY) {
         request.open("GET", this.constructUrl(queryString, limit), true);
         request.send();
       } else {
@@ -86,19 +75,19 @@ export class WebSearchHandler implements MVDHosting.SearchHandler {
   private processResults(input:any, instance:WebSearchHandler):MVDHosting.SearchResult{
 
     let entries:MVDHosting.SearchData[] = [];
-    let result:MVDHosting.SearchResult = {type:MVDHosting.SearchType.Web,
-                                          id: instance.id,
-                                          shortName: instance.shortName,
-                                          longName: instance.longName,
+    let result:MVDHosting.SearchResult = {type: instance.getType(),
+                                          id: instance.getId(),
+                                          shortName: instance.getShortName(),
+                                          longName: instance.getLongName(),
                                           entries: entries};
     
     let titles:string[] = [];
     let summaries:string[] = [];
     let hrefs:string[] = [];
-    const titleJson:string[] = instance.title.split('.');
-    const summaryJson:string[] = instance.summary.split('.');
-    const hrefJson:string[] = instance.resultHref.split('.');
-    const hrefPrefix = instance.resultHrefPrefix ? instance.resultHrefPrefix : '';
+    const titleJson:string[] = instance.context.definition.title.split('.');
+    const summaryJson:string[] = instance.context.definition.summary.split('.');
+    const hrefJson:string[] = instance.context.definition.resultHref.split('.');
+    const hrefPrefix = instance.context.definition.resultHrefPrefix ? instance.context.definition.resultHrefPrefix : '';
     if (input[titleJson[0]] &&
       input[titleJson[0]].length > 0 &&
       input[titleJson[0]][0][titleJson[2]] &&
@@ -141,25 +130,12 @@ export class WebSearchHandler implements MVDHosting.SearchHandler {
     return this.getHttp(queryString, limit);
   }
 
-  public getType(): string {
-    return "web";
-  }
+  getType(): string { return this.context.definition.type };
+  getId(): string { return this.context.id };
+  getShortName(): string { return this.context.definition.name };
+  getLongName(): string { return this.context.definition.description };
+  getTopics(): string[] { return this.context.definition.topics };
 
-  public getId(): string {
-    return this.id;
-  }
-
-  public getLongName(): string {
-    return this.longName;
-  }
-
-  public getShortName(): string {
-    return this.shortName;
-  }
-  
-  public getTopics(): string[] {
-    return this.topics;
-  }
 }
 
 

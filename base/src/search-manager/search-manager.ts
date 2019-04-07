@@ -8,6 +8,7 @@
   Copyright Contributors to the Zowe Project.
 */
 import {config}  from './config/types';
+import { HelloHandler, pluginDefs } from './config/ooc-app';
 import {WebSearchHandler} from './search-operators/web-search-operator';
 
 export class SearchManager implements ZLUX.SearchManager {
@@ -19,46 +20,82 @@ export class SearchManager implements ZLUX.SearchManager {
   // TODO consider creating a type for config when more solid
   
   constructor() {
-    const configJson:any = config;
-    for (let i:number = 0; i < configJson.searchNodes.length; i++){
-      //TODO put this elsewhere
-      const handler = new WebSearchHandler(
-        configJson.searchNodes[i].id,
-        configJson.searchNodes[i].shortName,
-        configJson.searchNodes[i].longName,
-        configJson.searchNodes[i].topics,
-        configJson.searchNodes[i].title,
-        configJson.searchNodes[i].summary,
-        configJson.searchNodes[i].queryParm,
-        configJson.searchNodes[i].queryHref,
-        configJson.searchNodes[i].resultHref,
-        configJson.searchNodes[i].requestType,
-        configJson.searchNodes[i].resultHrefPrefix,
-        configJson.searchNodes[i].limitParm);
-      this.handlers.add(handler);
-      let type = this.handlersByType.get('web');
-      if (!type) {
-        type = new Array<MVDHosting.SearchHandler>();
-        this.handlersByType.set('web',type);
-      }
-      type.push(handler);
-
-      let topics = handler.getTopics();
-      topics.forEach((topic)=> {
-        let topicHandlers = this.handlersByTopic.get(topic);
-        if (!topicHandlers) {
-          topicHandlers = new Array<MVDHosting.SearchHandler>();
-          this.handlersByTopic.set(topic,topicHandlers);
+    //this runs before some globals and types are found...
+    setTimeout(()=> {
+      const configJson:any = config;
+      for (let i:number = 0; i < configJson.searchNodes.length; i++){
+        //TODO put this elsewhere
+        const handler = new WebSearchHandler(
+          {
+            definition: configJson.searchNodes[i],
+            id: "_web:search."+configJson.searchNodes[i].name
+          });
+        (this.handlers as any).add(handler);
+        let type = this.handlersByType.get('web');
+        if (!type) {
+          type = new Array<MVDHosting.SearchHandler>();
+          this.handlersByType.set('web',type);
         }
-        topicHandlers.push(handler);
-      });
+        (type as any).push(handler);
 
-      this.handlersById.set(handler.getId(),handler);
+        let topics = handler.getTopics();
+        topics.forEach((topic)=> {
+          let topicHandlers = this.handlersByTopic.get(topic);
+          if (!topicHandlers) {
+            topicHandlers = new Array<MVDHosting.SearchHandler>();
+            this.handlersByTopic.set(topic,topicHandlers);
+          }
+          (topicHandlers as any).push(handler);
+        });
 
-    }
+        (this.handlersById as any).set(handler.getId(),handler);
+      }
+
+
+      for (let i:number = 0; i < pluginDefs.length; i++){
+        //TODO put this elsewhere
+        const plugin = pluginDefs[i];
+        for (let j = 0; j < plugin.search.handlers.length; j++) {
+          const handlerDef = plugin.search.handlers[j];
+          const id = plugin.identifier+":search."+handlerDef.name;
+          const initName: string = ''+handlerDef.initializerName;
+          //TODO big typescript hack... ooc-app.ts was being silently skipped
+          if (initName == 'helloInit') {
+            const handler:any = new HelloHandler({
+              definition: handlerDef,
+              //TODO make something that isnt going to conflict or look weird with dataservices
+              id: id,
+              pluginDefinition: plugin,
+              logger: ZoweZLUX.logger.makeComponentLogger(id)
+            });
+            
+            (this.handlers as any).add(handler);
+            let type = this.handlersByType.get('app');
+            if (!type) {
+              type = new Array<MVDHosting.SearchHandler>();
+              this.handlersByType.set('app',type);
+            }
+            (type as any).push(handler);
+
+            let topics = handler.getTopics();
+            topics.forEach((topic:string)=> {
+              let topicHandlers = this.handlersByTopic.get(topic);
+              if (!topicHandlers) {
+                topicHandlers = new Array<MVDHosting.SearchHandler>();
+                this.handlersByTopic.set(topic,topicHandlers);
+              }
+              (topicHandlers as any).push(handler);
+            });
+
+            (this.handlersById as any).set(handler.getId(),handler);
+
+          }        
+        }
+      }
+    },1000);
   }
 
-  search(queryString:string,
+    search(queryString:string,
          searchTopics:string[],
          handlerIds:string[],
          limit?: number):Promise<MVDHosting.SearchResult[]>{
