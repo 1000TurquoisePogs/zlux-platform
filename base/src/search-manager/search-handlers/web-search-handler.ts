@@ -11,10 +11,12 @@
 const REQUEST_TYPE_QUERY = 0;
 //const REQUEST_TYPE_POST = 1;
 
-export class WebSearchHandler {//extends MVDHosting.SearchHandler {
-  constructor(protected context: any){
-//    super(context);    
-  }
+export function makeWebSearchHandler(context: any): MVDHosting.SearchHandler {
+  return new WebSearchHandler(context);
+}
+
+export class WebSearchHandler implements MVDHosting.SearchHandler {
+  constructor(protected context: any){ }
 
   private addLimit(limit?: number):string{
     return this.context.definition.limitParm !== undefined && limit !== undefined
@@ -75,10 +77,10 @@ export class WebSearchHandler {//extends MVDHosting.SearchHandler {
   private processResults(input:any, instance:WebSearchHandler):MVDHosting.SearchResult{
 
     let entries:MVDHosting.SearchData[] = [];
-    let result:MVDHosting.SearchResult = {type: instance.getType(),
-                                          id: instance.getId(),
-                                          shortName: instance.getShortName(),
-                                          longName: instance.getLongName(),
+    let result:MVDHosting.SearchResult = {type: instance.getDefinition().type,
+                                            id: instance.getDefinition().id,
+                                            shortName: instance.getDefinition().name,
+                                            longName: instance.getDefinition().description,
                                           entries: entries};
     
     let titles:string[] = [];
@@ -130,12 +132,7 @@ export class WebSearchHandler {//extends MVDHosting.SearchHandler {
     return this.getHttp(queryString, limit);
   }
 
-  getType(): string { return this.context.definition.type };
-  getId(): string { return this.context.id };
-  getShortName(): string { return this.context.definition.name };
-  getLongName(): string { return this.context.definition.description };
-  getTopics(): string[] { return this.context.definition.topics };
-
+  getDefinition(): MVDHosting.SearchHandlerDefinition { return this.context.definition; }
 }
 
 

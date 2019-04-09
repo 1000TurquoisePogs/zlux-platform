@@ -7,11 +7,10 @@
 
   Copyright Contributors to the Zowe Project.
 */
-import {config}  from './config/types';
-import { HelloHandler, pluginDefs } from './config/ooc-app';
-import {WebSearchHandler} from './search-operators/web-search-operator';
 
-export class SearchManager implements ZLUX.SearchManager {
+import { makeWebSearchHandler } from './search-handlers/web-search-handler';
+
+export class SearchManager implements ZLUX.SearchManager, MVDHosting.LogoutActionInterface {
 
   private handlers: Set<MVDHosting.SearchHandler> = new Set<MVDHosting.SearchHandler>();
   private handlersByType = new Map<string, MVDHosting.SearchHandler[]>();
@@ -19,83 +18,18 @@ export class SearchManager implements ZLUX.SearchManager {
   private handlersById = new Map<string, MVDHosting.SearchHandler>();
   // TODO consider creating a type for config when more solid
   
-  constructor() {
-    //this runs before some globals and types are found...
-    setTimeout(()=> {
-      const configJson:any = config;
-      for (let i:number = 0; i < configJson.searchNodes.length; i++){
-        //TODO put this elsewhere
-        const handler = new WebSearchHandler(
-          {
-            definition: configJson.searchNodes[i],
-            id: "_web:search."+configJson.searchNodes[i].name
-          });
-        (this.handlers as any).add(handler);
-        let type = this.handlersByType.get('web');
-        if (!type) {
-          type = new Array<MVDHosting.SearchHandler>();
-          this.handlersByType.set('web',type);
-        }
-        (type as any).push(handler);
+  constructor() { }
 
-        let topics = handler.getTopics();
-        topics.forEach((topic)=> {
-          let topicHandlers = this.handlersByTopic.get(topic);
-          if (!topicHandlers) {
-            topicHandlers = new Array<MVDHosting.SearchHandler>();
-            this.handlersByTopic.set(topic,topicHandlers);
-          }
-          (topicHandlers as any).push(handler);
-        });
-
-        (this.handlersById as any).set(handler.getId(),handler);
-      }
-
-
-      for (let i:number = 0; i < pluginDefs.length; i++){
-        //TODO put this elsewhere
-        const plugin = pluginDefs[i];
-        for (let j = 0; j < plugin.search.handlers.length; j++) {
-          const handlerDef = plugin.search.handlers[j];
-          const id = plugin.identifier+":search."+handlerDef.name;
-          const initName: string = ''+handlerDef.initializerName;
-          //TODO big typescript hack... ooc-app.ts was being silently skipped
-          if (initName == 'helloInit') {
-            const handler:any = new HelloHandler({
-              definition: handlerDef,
-              //TODO make something that isnt going to conflict or look weird with dataservices
-              id: id,
-              pluginDefinition: plugin,
-              logger: ZoweZLUX.logger.makeComponentLogger(id)
-            });
-            
-            (this.handlers as any).add(handler);
-            let type = this.handlersByType.get('app');
-            if (!type) {
-              type = new Array<MVDHosting.SearchHandler>();
-              this.handlersByType.set('app',type);
-            }
-            (type as any).push(handler);
-
-            let topics = handler.getTopics();
-            topics.forEach((topic:string)=> {
-              let topicHandlers = this.handlersByTopic.get(topic);
-              if (!topicHandlers) {
-                topicHandlers = new Array<MVDHosting.SearchHandler>();
-                this.handlersByTopic.set(topic,topicHandlers);
-              }
-              (topicHandlers as any).push(handler);
-            });
-
-            (this.handlersById as any).set(handler.getId(),handler);
-
-          }        
-        }
-      }
-    },1000);
+  onLogout(): boolean {
+    this.handlers.clear();
+    this.handlersByType.clear();
+    this.handlersByTopic.clear();
+    this.handlersById.clear();
+    return true;
   }
 
-    search(queryString:string,
+  
+  search(queryString:string,
          searchTopics:string[],
          handlerIds:string[],
          limit?: number):Promise<MVDHosting.SearchResult[]>{
@@ -132,9 +66,80 @@ export class SearchManager implements ZLUX.SearchManager {
     return this.handlers;
   }
 
+  loadHandlers(plugin: ZLUX.Plugin1_1): Promise<number> {
+    return new Promise((resolve)=> {
+      if (plugin.getSearchCapabilities) {
+        const searchDef = plugin.getSearchCapabilities();
+        if (searchDef) {
+          console.log(`plugin (id=${plugin.getIdentifier()}) has search def`,searchDef);
+
+          let initializeHandlers = (file?: any) => {
+            let count = 0;
+            for (let i = 0; i < searchDef.handlers.length; i++) {
+              const handlerDef = searchDef.handlers[i];
+              this.initializeSearchHandler(plugin,
+                                           handlerDef,
+                                           file ? file[handlerDef.handlerFactory] : undefined);
+              count++;
+            }
+            resolve(count);
+          };
+
+          if (searchDef.filename) {
+          (window as any).requirejs([
+            ZoweZLUX.uriBroker.pluginResourceUri(plugin, searchDef.filename)
+          ], (file: any)=> {
+            initializeHandlers(file);
+          });
+          } else {
+            initializeHandlers();
+          }
+        } else { resolve(0); }
+      } else { resolve(0); }
+    });
+  }
+
+  private initializeSearchHandler(plugin: any, handlerDef: any, initializer?: any): boolean {
+    const id = plugin.getIdentifier()+":search."+handlerDef.name;
+    const context = {
+      definition: handlerDef,
+      id: id,
+      pluginDefinition: plugin,
+      logger: ZoweZLUX.logger.makeComponentLogger(id)
+    }
+    if (!initializer) {
+      initializer = this.getInternalInitializer(handlerDef);
+      if (!initializer) {
+        return false;
+      }
+    }
+    try {
+      const handler = initializer(context);
+      if (handler) {
+        console.log(`Successfully initialized search handler id=${id}`);
+        this.addSearchHandler(handler);
+      }
+    } catch (e) {
+      console.warn(`Could not load search handler ${handlerDef.name} for plugin ${plugin.getIdentifier()}`);
+      return false;
+    }
+    return true;
+  }
+
+  private getInternalInitializer(handlerDef: any): any {
+    switch (handlerDef.type) {
+      case 'web-json':
+        return makeWebSearchHandler;
+      default:
+        console.warn(`Cannot handle unknown search handler type=${handlerDef.type}`);
+    }
+    return null;
+  }
+
   addSearchHandler(handler: MVDHosting.SearchHandler) {
     this.handlers.add(handler);
-    const type = handler.getType();
+    const def = handler.getDefinition()
+    const type = def.type;
 
 
     let typeHandlers = this.handlersByType.get(type);
@@ -144,7 +149,7 @@ export class SearchManager implements ZLUX.SearchManager {
     }
     typeHandlers.push(handler);
 
-    const topics = handler.getTopics();
+    const topics = def.topics;
     topics.forEach((topic)=> {
       let topicHandlers = this.handlersByTopic.get(topic);
       if (!topicHandlers) {
@@ -154,7 +159,7 @@ export class SearchManager implements ZLUX.SearchManager {
       topicHandlers.push(handler);
     });
 
-    this.handlersById.set(handler.getId(), handler);
+    this.handlersById.set(def.id, handler);
   }
   /*
   private decodeQueryStringPath(inputStr:string):string{

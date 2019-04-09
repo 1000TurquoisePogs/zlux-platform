@@ -71,7 +71,7 @@ declare namespace MVDHosting {
   }
 
   export interface LoginActionInterface {
-    onLogin(username:string, plugins: ZLUX.Plugin[]):boolean;
+    onLogin(username:string, plugins: ZLUX.Plugin[]):Promise<boolean>;
   }
 
   export interface LogoutActionInterface {
@@ -128,18 +128,18 @@ declare namespace MVDHosting {
     longName: string,
     entries: SearchData[]
   }
+
+  export type SearchHandlerDefinition = {
+    type: string,
+    id: string,
+    name: string,
+    description: string,
+    topics: string[]
+  }
   
-  export abstract class SearchHandler {
-    protected context: any;
-    constructor(context: any) {this.context = context;}
-    getType(): string { return this.context.definition.type };
-    getId(): string { return this.context.id };
-    getShortName(): string { return this.context.definition.name };
-    getLongName(): string { return this.context.definition.description };
-    getTopics(): string[] { return this.context.definition.topics };
-
-    abstract search(queryString:string, limit?: number): Promise<MVDHosting.SearchResult>;
-
+  export interface SearchHandler {
+    getDefinition(): SearchHandlerDefinition;
+    search(queryString:string, limit?: number): Promise<MVDHosting.SearchResult>;
   }
 }
 

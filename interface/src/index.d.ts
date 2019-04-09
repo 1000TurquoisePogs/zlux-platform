@@ -27,9 +27,6 @@ declare namespace ZLUX {
     registerPluginWatcher(plugin:ZLUX.Plugin, watcher: PluginWatcher): void;
     //only removes watcher when same exact object
     deregisterPluginWatcher(plugin:ZLUX.Plugin, watcher: PluginWatcher): boolean;
-    registerSearchWatcher(plugin:ZLUX.Plugin, watcher: SearchWatcher): void;
-    //only removes watcher when same exact object
-    deregisterSearchWatcher(plugin:ZLUX.Plugin, watcher: SearchWatcher): boolean;
     registerPluginInstance(plugin: Plugin, applicationInstanceId: any, isIframe: boolean, isEmbedded?:boolean): void;
     deregisterPluginInstance(plugin: Plugin, applicationInstanceId: any): void;
     setLaunchHandler(launchCallback: any): void;
@@ -124,6 +121,7 @@ declare namespace ZLUX {
     
     getHandlers(): Set<MVDHosting.SearchHandler>;
     addSearchHandler(handler: MVDHosting.SearchHandler): void;
+    loadHandlers(plugin: ZLUX.Plugin1_1): Promise<number>;
   }
   
   interface Globalization {
@@ -174,11 +172,6 @@ declare namespace ZLUX {
     instanceRemoved(instanceId: MVDHosting.InstanceId): void;
   }
 
-  interface SearchWatcher {
-    searchInstanceAdded(instanceId: MVDHosting.InstanceId): void;
-    searchInstanceRemoved(instanceId: MVDHosting.InstanceId): void;
-  }
-
   const enum PluginType {
     Desktop = "desktop",
     Application = "application"
@@ -189,7 +182,17 @@ declare namespace ZLUX {
     getIdentifier():string;
     getVersion():string;
     getWebContent():any;
-    getSearchCapabilities():any[];
+    getType():PluginType;
+    getCopyright(): string;
+    hasComponents(): boolean;
+  }
+
+  interface Plugin1_1 {
+    getKey():string;
+    getIdentifier():string;
+    getVersion():string;
+    getWebContent():any;
+    getSearchCapabilities():any;
     getType():PluginType;
     getCopyright(): string;
     hasComponents(): boolean;

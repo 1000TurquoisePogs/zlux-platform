@@ -63,7 +63,6 @@ export class Dispatcher implements ZLUX.Dispatcher {
    postMessageCallback: any = null;
    public readonly constants:DispatcherConstants = new DispatcherConstants();
    private log:ZLUX.ComponentLogger;
-   private searchWatchers: Map<String,Array<ZLUX.SearchWatcher>> = new Map();
 
   constructor(logger: ZLUX.Logger){
      /* dispatcher created early on - refering to logger from window object as a result */
@@ -156,13 +155,6 @@ export class Dispatcher implements ZLUX.Dispatcher {
      if (watchers) {
        for (let i = 0; i < watchers.length; i++) {
          watchers[i].instanceAdded(applicationInstanceId, isEmbedded);
-       }
-     }
-
-     let swatchers = this.searchWatchers.get(key);
-     if (swatchers) {
-       for (let i = 0; i < swatchers.length; i++) {
-         swatchers[i].searchInstanceAdded(applicationInstanceId);
        }
      }
 
@@ -323,35 +315,6 @@ export class Dispatcher implements ZLUX.Dispatcher {
     }
   }
 
-  registerSearchWatcher(plugin:ZLUX.Plugin, watcher: ZLUX.SearchWatcher):void{
-    let key = plugin.getKey();
-    let swatchers = this.searchWatchers.get(key);
-    if (plugin.getSearchCapabilities().length > 0){
-      if (!swatchers) {
-        swatchers = new Array<ZLUX.SearchWatcher>();
-        this.searchWatchers.set(key,swatchers);
-      }
-      swatchers.push(watcher);
-    }
-
-  }
-
-  deregisterSearchWatcher(plugin:ZLUX.Plugin, swatcher: ZLUX.SearchWatcher): boolean {
-    let key = plugin.getKey();
-    let swatchers = this.searchWatchers.get(key);
-    if (!swatchers) {
-      return false;
-    }
-    else {
-      for (let i = 0; i < swatchers.length; i++) {
-        if (swatchers[i] == swatcher) {
-          swatchers.splice(i,1);
-          return true;
-        }
-      }
-      return false;
-    }
-  }
 
 /* what will callback be called with */
   registerAction(action: Action):void {

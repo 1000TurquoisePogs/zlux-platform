@@ -51,8 +51,6 @@ export abstract class Plugin implements ZLUX.Plugin {
 
   abstract getWebContent():any;
 
-  abstract getSearchCapabilities():any[];
-
   abstract getType():ZLUX.PluginType;
 
   abstract getCopyright():string;
@@ -132,13 +130,6 @@ class Plugin_0 extends Plugin {
     return this.webContent;
   }
 
-  getSearchCapabilities():any[]{
-    if (!!this.webContent.launchDefinition.abilities){
-      return this.webContent.launchDefinition.abilities;
-    }
-    return [];
-  }
-
   getType():ZLUX.PluginType{
     return this.type;
   }
@@ -154,10 +145,17 @@ class Plugin_0 extends Plugin {
 }
 
 class Plugin_1 extends Plugin_0 {
+  private readonly search: any;
+
   constructor(definition: any) {
     super(definition);
+
+    this.search = definition.search;
   }
 
+  getSearchCapabilities():any{
+    return this.search;
+  }
 }
 
 
