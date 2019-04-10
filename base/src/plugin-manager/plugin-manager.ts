@@ -40,6 +40,31 @@ export class PluginManager {
     }
   }
 
+  static findMatchingPlugins(query:string): ZLUX.Plugin[] {
+    let iterator = PluginManager.pluginsById.values();
+    let result = iterator.next();
+    let plugins: ZLUX.Plugin[] = [];
+    while (!result.done) {
+      const plugin = result.value;
+      try {
+        if (plugin.getType() == 'application') {
+          const webContent = plugin.getWebContent();
+          if (webContent) {
+            if (plugin.getIdentifier().includes(query)
+                || webContent.descriptionDefault.includes(query)
+                || webContent.launchDefinition.pluginShortNameDefault.includes(query)) {
+              plugins.push(plugin);
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Skipped malformed plugin, ID='+plugin.getIdentifier());
+      }
+      result = iterator.next();
+    }
+    return plugins;
+  }
+
   static getPlugin(id:string):ZLUX.Plugin|undefined {
     return PluginManager.pluginsById.get(id);
   }

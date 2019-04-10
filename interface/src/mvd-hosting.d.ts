@@ -71,7 +71,7 @@ declare namespace MVDHosting {
   }
 
   export interface LoginActionInterface {
-    onLogin(username:string, plugins: ZLUX.Plugin[]):Promise<boolean>;
+    onLogin(username:string, plugins: ZLUX.Plugin[], desktopPlugin: ZLUX.Plugin):Promise<boolean>;
   }
 
   export interface LogoutActionInterface {
