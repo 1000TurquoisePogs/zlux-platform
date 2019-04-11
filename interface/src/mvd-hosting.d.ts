@@ -114,6 +114,7 @@ declare namespace MVDHosting {
   export type SearchData = {
     title: string,
     summary: string,
+    imageRef: string,
     data: any
   }
 

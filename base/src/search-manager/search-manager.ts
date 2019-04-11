@@ -55,11 +55,16 @@ export class SearchManager implements ZLUX.SearchManager, MVDHosting.LogoutActio
       }
     }
     const query = this.decodeQueryStringSearch(queryString);
+    let handlersProcessed = 0;
+    
     handlers.forEach((handler)=> {
       promises_array.push(handler.search(query, limit));
     });
     
-    return Promise.all(promises_array);        
+    return Promise.all(promises_array).catch((error)=> {
+      console.warn(`A handler encountered error=`,error);
+      return promises_array;
+    });        
   }
   
   getHandlers(): Set<MVDHosting.SearchHandler> {
