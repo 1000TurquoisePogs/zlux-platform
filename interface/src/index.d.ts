@@ -234,7 +234,10 @@ declare namespace ZLUX {
     pluginWSUri(pluginDefinition: Plugin, serviceName: string, 
         relativePath: string, version?: string): string;
     pluginRESTUri(pluginDefinition: Plugin, serviceName: string, 
-        relativePath: string, version?: string): string;
+                  relativePath: string, version?: string): string;
+    setRoute(viewportId: MVDHosting.ViewportId, route:string): string;
+    removeRoutes(viewportId: MVDHosting.ViewportId): void;
+    makeFormattedRoute(viewportId: MVDHosting.ViewportId, route: string): string;
   }
 
   
